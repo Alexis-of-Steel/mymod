@@ -18,9 +18,8 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # OJO: estas carpetas se crean FUERA del repo,
-      # como espera filecopy.bat (..\..\..\game\mod\...)
-      - name: Create mod output folders
+      # Carpetas externas donde el SDK espera copiar resultados
+      - name: Create external mod output folders
         shell: cmd
         run: |
           mkdir ..\game
@@ -33,11 +32,21 @@ jobs:
         run: |
           msbuild projects\vs2019\projects.sln /p:Configuration=Release /p:Platform=Win32 /m
 
-      # Subimos los DLL generados en ..\game\mod\...
+      # Crear carpeta interna en el repo para subir artefactos
+      - name: Prepare artifact folder
+        shell: cmd
+        run: |
+          mkdir _artifacts
+
+      # Copiar DLLs desde las carpetas externas al repo
+      - name: Copy DLLs back into repo
+        shell: cmd
+        run: |
+          xcopy ..\game\mod\* _artifacts /S /Y
+
+      # Subimos solo lo que está dentro del repo
       - name: Upload built DLLs
         uses: actions/upload-artifact@v4
         with:
           name: halflife-dlls
-          path: |
-            ../game/mod/**/*.dll
-            ../game/mod/**/*.pdb
+          path: _artifacts
