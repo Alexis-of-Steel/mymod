@@ -17,25 +17,27 @@ jobs:
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-        with:
-          vs-version: '17.0'
 
+      # OJO: estas carpetas se crean FUERA del repo,
+      # como espera filecopy.bat (..\..\..\game\mod\...)
       - name: Create mod output folders
         shell: cmd
         run: |
-          mkdir game\mod
-          mkdir game\mod\dlls
-          mkdir game\mod\cl_dlls
+          mkdir ..\game
+          mkdir ..\game\mod
+          mkdir ..\game\mod\dlls
+          mkdir ..\game\mod\cl_dlls
 
       - name: Build HL server & client DLLs (Release Win32)
         shell: cmd
         run: |
           msbuild projects\vs2019\projects.sln /p:Configuration=Release /p:Platform=Win32 /m
 
+      # Subimos los DLL generados en ..\game\mod\...
       - name: Upload built DLLs
         uses: actions/upload-artifact@v4
         with:
           name: halflife-dlls
           path: |
-            game/mod/**/*.dll
-            game/mod/**/*.pdb
+            ../game/mod/**/*.dll
+            ../game/mod/**/*.pdb
